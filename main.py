@@ -9,12 +9,14 @@ app = Flask(__name__)
 # Necesario para usar 'session' en Flask de forma segura
 app.secret_key = os.environ.get("SECRET_KEY", "clave_super_secreta_local")
 
+# Inicializa la BD al arrancar
 try:
     inicializar_bd()
-except:
-    pass
+except Exception as e:
+    print(f"Error en BD: {e}")
 
 def consultar_datos_sala(ubicacion_id):
+    """Obtiene los equipos, historial y KPIs de una sala específica."""
     conn = obtener_conexion()
     cursor = conn.cursor()
 
@@ -47,8 +49,74 @@ def consultar_datos_sala(ubicacion_id):
         "fallas": fallas
     }
 
+# ================= RUTAS DE AUTENTICACIÓN =================
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email").strip()
+        password = request.form.get("password").strip()
+        
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+        usuario = cursor.fetchone()
+        conn.close()
+        
+        if usuario and check_password_hash(usuario["password"], password):
+            session["usuario_id"] = usuario["id"]
+            session["nombre"] = usuario["nombre"]
+            session["rol"] = usuario["rol"]
+            return redirect(url_for("index"))
+        else:
+            return render_template("login.html", error="Correo o contraseña incorrectos.")
+            
+    return render_template("login.html")
+
+@app.route("/registro", methods=["POST"])
+def registro():
+    nombre = request.form.get("nombre").strip()
+    email = request.form.get("email").strip()
+    password = request.form.get("password").strip()
+    rol = request.form.get("rol")
+    
+    hashed_password = generate_password_hash(password)
+    
+    conn = obtener_conexion()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO usuarios (nombre, email, password, rol)
+            VALUES (%s, %s, %s, %s)
+        """, (nombre, email, hashed_password, rol))
+        conn.commit()
+    except psycopg2.IntegrityError:
+        conn.close()
+        return render_template("login.html", error="El correo ya está registrado.")
+    
+    # Iniciar sesión automáticamente después de registrarse
+    cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+    nuevo_usuario = cursor.fetchone()
+    conn.close()
+    
+    session["usuario_id"] = nuevo_usuario["id"]
+    session["nombre"] = nuevo_usuario["nombre"]
+    session["rol"] = nuevo_usuario["rol"]
+    return redirect(url_for("index"))
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+# ================= RUTAS PROTEGIDAS =================
+
 @app.route("/")
 def index():
+    # Si no hay sesión iniciada, manda al usuario al Login
+    if "usuario_id" not in session:
+        return redirect(url_for("login"))
+        
     conn = obtener_conexion()
     cursor = conn.cursor()
 
@@ -66,6 +134,7 @@ def index():
         "base.html",
         laboratorios=laboratorios,
         aulas=aulas,
+        usuario_actual=session, 
         **datos_sala
     )
 
@@ -125,93 +194,5 @@ def nuevo_mantenimiento():
     datos_sala = consultar_datos_sala(ubicacion_id)
     return render_template("partials/sala.html", **datos_sala)
 
-# Vercel necesita la variable 'app' expuesta (ya la tenemos arriba)
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-    # ================= RUTAS DE AUTENTICACIÓN =================
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form.get("email").strip()
-        password = request.form.get("password").strip()
-        
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
-        usuario = cursor.fetchone()
-        conn.close()
-        
-        # Verificar si el usuario existe y la contraseña es correcta
-        if usuario and check_password_hash(usuario["password"], password):
-            session["usuario_id"] = usuario["id"]
-            session["nombre"] = usuario["nombre"]
-            session["rol"] = usuario["rol"]
-            return redirect(url_for("index"))
-        else:
-            return render_template("login.html", error="Correo o contraseña incorrectos.")
-            
-    return render_template("login.html")
-
-@app.route("/registro", methods=["POST"])
-def registro():
-    nombre = request.form.get("nombre").strip()
-    email = request.form.get("email").strip()
-    password = request.form.get("password").strip()
-    rol = request.form.get("rol")
-    
-    # Encriptar la contraseña antes de guardarla
-    hashed_password = generate_password_hash(password)
-    
-    conn = obtener_conexion()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            INSERT INTO usuarios (nombre, email, password, rol)
-            VALUES (%s, %s, %s, %s)
-        """, (nombre, email, hashed_password, rol))
-        conn.commit()
-    except psycopg2.IntegrityError:
-        conn.close()
-        return render_template("login.html", error="El correo ya está registrado.")
-    
-    conn.close()
-    # Loguear automáticamente tras el registro
-    return login()
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-# ================= RUTAS PROTEGIDAS =================
-
-@app.route("/")
-def index():
-    # Proteger la ruta principal: Si no hay sesión, al login
-    if "usuario_id" not in session:
-        return redirect(url_for("login"))
-        
-    conn = obtener_conexion()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM ubicaciones WHERE tipo = 'Laboratorio' ORDER BY nombre ASC")
-    laboratorios = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM ubicaciones WHERE tipo = 'Aula' ORDER BY nombre ASC")
-    aulas = cursor.fetchall()
-    conn.close()
-
-    primer_id = laboratorios[0]["id"] if laboratorios else 1
-    datos_sala = consultar_datos_sala(primer_id)
-
-    return render_template(
-        "base.html",
-        laboratorios=laboratorios,
-        aulas=aulas,
-        usuario_actual=session, # Pasamos la sesión al template
-        **datos_sala
-    )
-
-# ... (Mantén aquí el resto de tus rutas HTMX: /espacio, /equipo/nuevo, /mantenimiento/nuevo) ...
