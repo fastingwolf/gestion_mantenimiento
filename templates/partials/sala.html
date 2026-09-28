@@ -76,18 +76,26 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
+            <div class="form-group">
                     <label>Tipo de Equipo</label>
-                    <select name="categoria">
-                        <option value="Aire Acondicionado">Aire Acondicionado</option>
-                        <option value="Plancha de Calentamiento / Agitación">Plancha de Calentamiento / Agitación</option>
-                        <option value="Horno / Mufla / Estufa">Horno / Mufla / Estufa</option>
-                        <option value="Nevera / Refrigerador de reactivos">Nevera / Refrigerador de reactivos</option>
-                        <option value="Balanza Analítica / Granataria">Balanza Analítica / Granataria</option>
-                        <option value="Espectrofotómetro / Medidor Óptico">Espectrofotómetro / Medidor Óptico</option>
-                        <option value="Video Beam / Proyector">Video Beam / Proyector</option>
-                        <option value="Otro">Otro</option>
+                    <select name="categoria" required>
+                        {% if espacio.tipo == 'Aula' %}
+                            <!-- Opciones exclusivas para Aulas -->
+                            <option value="Aire Acondicionado">Aire Acondicionado</option>
+                            <option value="Video Beam / Proyector">Video Beam / Proyector</option>
+                            <option value="Otro">Otro</option>
+                        {% else %}
+                            <!-- Opciones completas para Laboratorios -->
+                            <option value="Aire Acondicionado">Aire Acondicionado</option>
+                            <option value="Plancha de Calentamiento / Agitación">Plancha de Calentamiento / Agitación</option>
+                            <option value="Horno / Mufla / Estufa">Horno / Mufla / Estufa</option>
+                            <option value="Nevera / Refrigerador de reactivos">Nevera / Refrigerador de reactivos</option>
+                            <option value="Balanza Analítica / Granataria">Balanza Analítica / Granataria</option>
+                            <option value="Espectrofotómetro / Medidor Óptico">Espectrofotómetro / Medidor Óptico</option>
+                            <option value="Video Beam / Proyector">Video Beam / Proyector</option>
+                            <option value="Bomba / Reactor">Bomba / Reactor</option>
+                            <option value="Otro">Otro</option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="form-group">
