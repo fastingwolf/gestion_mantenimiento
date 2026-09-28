@@ -153,6 +153,10 @@ def nuevo_equipo():
     modelo = request.form.get("modelo", "").strip()
     estado = request.form.get("estado", "Operativo")
 
+    mensaje_exito = None
+    mensaje_error = None
+    tab_activa = "tab-nuevo"
+
     if codigo and nombre:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -162,24 +166,36 @@ def nuevo_equipo():
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (codigo, nombre, categoria, marca, modelo, estado, ubicacion_id))
             conn.commit()
+            mensaje_exito = f"El equipo '{nombre}' se guardó exitosamente."
+            tab_activa = "tab-catalogo" # Si hay éxito, te lleva al catálogo para verlo
         except psycopg2.IntegrityError:
-            pass 
+            mensaje_error = f"Error: El código '{codigo}' ya existe. Debe ser único."
         finally:
             conn.close()
+    else:
+        mensaje_error = "Los campos Código y Nombre son obligatorios."
 
     datos_sala = consultar_datos_sala(ubicacion_id)
-    return render_template("partials/sala.html", **datos_sala)
+    return render_template("partials/sala.html", 
+                           mensaje_exito=mensaje_exito, 
+                           mensaje_error=mensaje_error, 
+                           tab_activa=tab_activa, 
+                           **datos_sala)
 
 @app.route("/mantenimiento/nuevo", methods=["POST"])
 def nuevo_mantenimiento():
     ubicacion_id = int(request.form.get("ubicacion_id"))
-    equipo_id = int(request.form.get("equipo_id"))
+    equipo_id = request.form.get("equipo_id")
     tipo = request.form.get("tipo")
     nuevo_estado = request.form.get("nuevo_estado")
     responsable = request.form.get("responsable", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
 
-    if responsable and descripcion:
+    mensaje_exito = None
+    mensaje_error = None
+    tab_activa = "tab-mantenimiento"
+
+    if equipo_id and responsable and descripcion:
         conn = obtener_conexion()
         cursor = conn.cursor()
         cursor.execute("""
@@ -190,9 +206,18 @@ def nuevo_mantenimiento():
         cursor.execute("UPDATE equipos SET estado = %s WHERE id = %s", (nuevo_estado, equipo_id))
         conn.commit()
         conn.close()
+        
+        mensaje_exito = "La orden de servicio fue registrada y el estado actualizado."
+        tab_activa = "tab-historial" # Si hay éxito, te muestra el historial
+    else:
+        mensaje_error = "Por favor completa el responsable y la descripción."
 
     datos_sala = consultar_datos_sala(ubicacion_id)
-    return render_template("partials/sala.html", **datos_sala)
+    return render_template("partials/sala.html", 
+                           mensaje_exito=mensaje_exito, 
+                           mensaje_error=mensaje_error, 
+                           tab_activa=tab_activa, 
+                           **datos_sala)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

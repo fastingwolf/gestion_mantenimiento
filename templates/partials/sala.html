@@ -3,7 +3,19 @@
     <p>Tipo de espacio: <strong>{{ espacio.tipo }}</strong> | Identificador: #{{ espacio.id }}</p>
 </div>
 
-<!-- TARJETAS DE INDICADORES (KPIS) -->
+<!-- ================= ALERTAS VISUALES ================= -->
+{% if mensaje_exito %}
+<div style="background-color: #dcfce7; color: #15803d; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #86efac; font-weight: 600;">
+    ✅ {{ mensaje_exito }}
+</div>
+{% endif %}
+{% if mensaje_error %}
+<div style="background-color: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fca5a5; font-weight: 600;">
+    ❌ {{ mensaje_error }}
+</div>
+{% endif %}
+
+<!-- ================= TARJETAS DE INDICADORES ================= -->
 <div class="kpi-grid">
     <div class="kpi-card">
         <div class="kpi-label">Total Activos</div>
@@ -19,16 +31,16 @@
     </div>
 </div>
 
-<!-- SELECTOR DE PESTAÑAS -->
+<!-- ================= SELECTOR DE PESTAÑAS DINÁMICO ================= -->
 <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab(event, 'tab-catalogo')">📋 Catálogo de Equipos</button>
-    <button class="tab-btn" onclick="switchTab(event, 'tab-nuevo')">➕ Registrar Activo</button>
-    <button class="tab-btn" onclick="switchTab(event, 'tab-mantenimiento')">🛠️ Generar Orden</button>
-    <button class="tab-btn" onclick="switchTab(event, 'tab-historial')">📜 Historial Técnico</button>
+    <button class="tab-btn {% if not tab_activa or tab_activa == 'tab-catalogo' %}active{% endif %}" onclick="switchTab(event, 'tab-catalogo')">📋 Catálogo de Equipos</button>
+    <button class="tab-btn {% if tab_activa == 'tab-nuevo' %}active{% endif %}" onclick="switchTab(event, 'tab-nuevo')">➕ Registrar Activo</button>
+    <button class="tab-btn {% if tab_activa == 'tab-mantenimiento' %}active{% endif %}" onclick="switchTab(event, 'tab-mantenimiento')">🛠️ Generar Orden</button>
+    <button class="tab-btn {% if tab_activa == 'tab-historial' %}active{% endif %}" onclick="switchTab(event, 'tab-historial')">📜 Historial Técnico</button>
 </div>
 
 <!-- PESTAÑA 1: CATÁLOGO -->
-<div id="tab-catalogo" class="tab-panel active">
+<div id="tab-catalogo" class="tab-panel {% if not tab_activa or tab_activa == 'tab-catalogo' %}active{% endif %}">
     {% if equipos|length == 0 %}
         <p style="color: #64748b;">No hay equipos registrados en esta ubicación todavía.</p>
     {% else %}
@@ -59,9 +71,8 @@
 </div>
 
 <!-- PESTAÑA 2: REGISTRAR EQUIPO -->
-<div id="tab-nuevo" class="tab-panel">
+<div id="tab-nuevo" class="tab-panel {% if tab_activa == 'tab-nuevo' %}active{% endif %}">
     <div class="form-card">
-        <!-- HTMX envía este formulario sin recargar la página -->
         <form hx-post="/equipo/nuevo" hx-target="#contenido-principal" hx-swap="innerHTML">
             <input type="hidden" name="ubicacion_id" value="{{ espacio.id }}">
             
@@ -76,16 +87,15 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-row">
+                <div class="form-group">
                     <label>Tipo de Equipo</label>
                     <select name="categoria" required>
                         {% if espacio.tipo == 'Aula' %}
-                            <!-- Opciones exclusivas para Aulas -->
                             <option value="Aire Acondicionado">Aire Acondicionado</option>
                             <option value="Video Beam / Proyector">Video Beam / Proyector</option>
                             <option value="Otro">Otro</option>
                         {% else %}
-                            <!-- Opciones completas para Laboratorios -->
                             <option value="Aire Acondicionado">Aire Acondicionado</option>
                             <option value="Plancha de Calentamiento / Agitación">Plancha de Calentamiento / Agitación</option>
                             <option value="Horno / Mufla / Estufa">Horno / Mufla / Estufa</option>
@@ -124,8 +134,8 @@
     </div>
 </div>
 
-<!-- PESTAÑA 3: GENERAR ORDEN -->
-<div id="tab-mantenimiento" class="tab-panel">
+<!-- PESTAÑA 3: GENERAR ORDEN DE MANTENIMIENTO -->
+<div id="tab-mantenimiento" class="tab-panel {% if tab_activa == 'tab-mantenimiento' %}active{% endif %}">
     <div class="form-card">
         {% if equipos|length == 0 %}
             <p style="color: #64748b;">Debes registrar equipos en esta sala antes de crear órdenes.</p>
@@ -135,7 +145,7 @@
 
             <div class="form-group">
                 <label>Seleccionar Equipo</label>
-                <select name="equipo_id">
+                <select name="equipo_id" required>
                     {% for eq in equipos %}
                     <option value="{{ eq.id }}">[{{ eq.codigo }}] {{ eq.nombre }}</option>
                     {% endfor %}
@@ -177,7 +187,7 @@
 </div>
 
 <!-- PESTAÑA 4: HISTORIAL -->
-<div id="tab-historial" class="tab-panel">
+<div id="tab-historial" class="tab-panel {% if tab_activa == 'tab-historial' %}active{% endif %}">
     {% if historial|length == 0 %}
         <p style="color: #64748b;">Sin intervenciones registradas en este espacio.</p>
     {% else %}
