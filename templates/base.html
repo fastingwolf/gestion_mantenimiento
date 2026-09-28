@@ -50,7 +50,31 @@
                 {% endfor %}
             </ul>
         </div>
+        <div>
+            <div class="section-label">Aulas de Clase</div>
+            <ul class="menu-list">
+                {% for aula in aulas %}
+                <li>
+                    <button class="menu-btn"
+                            hx-get="/espacio/{{ aula.id }}" 
+                            hx-target="#contenido-principal" 
+                            hx-swap="innerHTML"
+                            onclick="setActive(this)">
+                        🏫 {{ aula.nombre }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- NUEVO: PERFIL DEL USUARIO -->
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #1e293b;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">👤 {{ usuario_actual.nombre }}</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem;">Rol: {{ usuario_actual.rol }}</div>
+            <a href="/logout" style="color: #ef4444; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Cerrar Sesión</a>
+        </div>
     </aside>
+
 
     <!-- ÁREA CENTRAL DINÁMICA -->
     <main id="contenido-principal" class="main-content">

@@ -1,12 +1,14 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 from datetime import date
 from database import obtener_conexion, inicializar_bd
 
 app = Flask(__name__)
+# Necesario para usar 'session' en Flask de forma segura
+app.secret_key = os.environ.get("SECRET_KEY", "clave_super_secreta_local")
 
-# Intentar inicializar la BD al arrancar (Vercel lo ejecutará en el primer llamado)
 try:
     inicializar_bd()
 except:
@@ -126,3 +128,90 @@ def nuevo_mantenimiento():
 # Vercel necesita la variable 'app' expuesta (ya la tenemos arriba)
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
+    # ================= RUTAS DE AUTENTICACIÓN =================
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email").strip()
+        password = request.form.get("password").strip()
+        
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+        usuario = cursor.fetchone()
+        conn.close()
+        
+        # Verificar si el usuario existe y la contraseña es correcta
+        if usuario and check_password_hash(usuario["password"], password):
+            session["usuario_id"] = usuario["id"]
+            session["nombre"] = usuario["nombre"]
+            session["rol"] = usuario["rol"]
+            return redirect(url_for("index"))
+        else:
+            return render_template("login.html", error="Correo o contraseña incorrectos.")
+            
+    return render_template("login.html")
+
+@app.route("/registro", methods=["POST"])
+def registro():
+    nombre = request.form.get("nombre").strip()
+    email = request.form.get("email").strip()
+    password = request.form.get("password").strip()
+    rol = request.form.get("rol")
+    
+    # Encriptar la contraseña antes de guardarla
+    hashed_password = generate_password_hash(password)
+    
+    conn = obtener_conexion()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO usuarios (nombre, email, password, rol)
+            VALUES (%s, %s, %s, %s)
+        """, (nombre, email, hashed_password, rol))
+        conn.commit()
+    except psycopg2.IntegrityError:
+        conn.close()
+        return render_template("login.html", error="El correo ya está registrado.")
+    
+    conn.close()
+    # Loguear automáticamente tras el registro
+    return login()
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+# ================= RUTAS PROTEGIDAS =================
+
+@app.route("/")
+def index():
+    # Proteger la ruta principal: Si no hay sesión, al login
+    if "usuario_id" not in session:
+        return redirect(url_for("login"))
+        
+    conn = obtener_conexion()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM ubicaciones WHERE tipo = 'Laboratorio' ORDER BY nombre ASC")
+    laboratorios = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM ubicaciones WHERE tipo = 'Aula' ORDER BY nombre ASC")
+    aulas = cursor.fetchall()
+    conn.close()
+
+    primer_id = laboratorios[0]["id"] if laboratorios else 1
+    datos_sala = consultar_datos_sala(primer_id)
+
+    return render_template(
+        "base.html",
+        laboratorios=laboratorios,
+        aulas=aulas,
+        usuario_actual=session, # Pasamos la sesión al template
+        **datos_sala
+    )
+
+# ... (Mantén aquí el resto de tus rutas HTMX: /espacio, /equipo/nuevo, /mantenimiento/nuevo) ...

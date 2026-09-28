@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso al Sistema</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-body">
+
+    <div class="auth-container">
+        <!-- Formulario de Iniciar Sesión -->
+        <div id="form-login" class="auth-card">
+            <div class="auth-header">
+                <h2><span>⚙️</span> Iniciar Sesión</h2>
+                <p>Gestión de Mantenimiento de Laboratorios</p>
+            </div>
+            
+            {% if error %}
+            <div class="auth-error">{{ error }}</div>
+            {% endif %}
+
+            <form action="/login" method="POST">
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="email" required placeholder="correo@institucion.edu">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit auth-btn">Entrar al Sistema</button>
+            </form>
+            
+            <p class="auth-switch">¿No tienes cuenta? <button type="button" onclick="toggleAuth()">Regístrate aquí</button></p>
+        </div>
+
+        <!-- Formulario de Registro -->
+        <div id="form-registro" class="auth-card" style="display: none;">
+            <div class="auth-header">
+                <h2>Crear Cuenta</h2>
+                <p>Únete como personal académico o técnico</p>
+            </div>
+            
+            <form action="/registro" method="POST">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" name="nombre" required placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="email" required placeholder="correo@institucion.edu">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" name="password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol en la institución</label>
+                        <select name="rol" required>
+                            <option value="Técnico">Técnico de Laboratorio</option>
+                            <option value="Docente">Docente / Investigador</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit auth-btn" style="background-color: #10b981;">Registrarse</button>
+            </form>
+            
+            <p class="auth-switch">¿Ya tienes cuenta? <button type="button" onclick="toggleAuth()">Inicia sesión</button></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleAuth() {
+            const login = document.getElementById('form-login');
+            const registro = document.getElementById('form-registro');
+            if (login.style.display === 'none') {
+                login.style.display = 'block';
+                registro.style.display = 'none';
+            } else {
+                login.style.display = 'none';
+                registro.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
