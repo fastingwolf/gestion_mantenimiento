@@ -25,6 +25,16 @@ body {
     gap: 1.5rem;
     border-right: 1px solid #1e293b;
     flex-shrink: 0;
+    overflow-y: auto; /* Permite scroll si hay muchos laboratorios */
+}
+
+/* Estilo para la barra de scroll del menú */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 4px;
 }
 
 .sidebar-title {
@@ -34,46 +44,58 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 0.5rem;
 }
 
 .section-label {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #94a3b8;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+    color: #64748b; /* Tono más suave para no competir con los botones */
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+    padding-left: 0.5rem;
 }
 
 .menu-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem; /* Un poco más de espacio para respirar */
 }
 
 .menu-btn {
     width: 100%;
     text-align: left;
-    background: none;
+    background: transparent;
     border: none;
-    color: #cbd5e1;
-    padding: 0.6rem 0.8rem;
+    color: #94a3b8; /* Texto inactivo ligeramente apagado */
+    padding: 0.7rem 0.8rem;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
-    transition: all 0.15s ease;
+    line-height: 1.3;
+    transition: all 0.2s ease;
+    
+    /* Flexbox evita que el texto largo pase por debajo del emoji */
+    display: flex; 
+    align-items: flex-start; 
+    gap: 0.6rem;
 }
 
 .menu-btn:hover {
     background-color: #1e293b;
-    color: #ffffff;
+    color: #f1f5f9;
 }
 
 .menu-btn.active {
     background-color: #2563eb;
     color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25); /* Sombreado elegante */
 }
 
 /* ================= PANEL PRINCIPAL ================= */

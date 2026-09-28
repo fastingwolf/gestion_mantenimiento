@@ -27,12 +27,14 @@
                             hx-target="#contenido-principal" 
                             hx-swap="innerHTML"
                             onclick="setActive(this)">
-                        🔬 {{ lab.nombre }}
+                        <span>🔬</span>
+                        <span>{{ lab.nombre }}</span>
                     </button>
                 </li>
                 {% endfor %}
             </ul>
         </div>
+
         <div>
             <div class="section-label">Aulas de Clase</div>
             <ul class="menu-list">
@@ -43,13 +45,13 @@
                             hx-target="#contenido-principal" 
                             hx-swap="innerHTML"
                             onclick="setActive(this)">
-                        🏫 {{ aula.nombre }}
+                        <span>🏫</span>
+                        <span>{{ aula.nombre }}</span>
                     </button>
                 </li>
                 {% endfor %}
             </ul>
         </div>
-
         <!-- NUEVO: PERFIL DEL USUARIO -->
         <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #1e293b;">
             <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">👤 {{ usuario_actual.nombre }}</div>
