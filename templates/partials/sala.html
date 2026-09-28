@@ -1,0 +1,201 @@
+<div class="page-header">
+    <h1>{{ espacio.nombre }}</h1>
+    <p>Tipo de espacio: <strong>{{ espacio.tipo }}</strong> | Identificador: #{{ espacio.id }}</p>
+</div>
+
+<!-- TARJETAS DE INDICADORES (KPIS) -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Activos</div>
+        <div class="kpi-value">{{ total }}</div>
+    </div>
+    <div class="kpi-card success">
+        <div class="kpi-label">Operativos</div>
+        <div class="kpi-value">{{ operativos }}</div>
+    </div>
+    <div class="kpi-card danger">
+        <div class="kpi-label">En Falla / Mant.</div>
+        <div class="kpi-value">{{ fallas }}</div>
+    </div>
+</div>
+
+<!-- SELECTOR DE PESTAÑAS -->
+<div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab(event, 'tab-catalogo')">📋 Catálogo de Equipos</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-nuevo')">➕ Registrar Activo</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-mantenimiento')">🛠️ Generar Orden</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-historial')">📜 Historial Técnico</button>
+</div>
+
+<!-- PESTAÑA 1: CATÁLOGO -->
+<div id="tab-catalogo" class="tab-panel active">
+    {% if equipos|length == 0 %}
+        <p style="color: #64748b;">No hay equipos registrados en esta ubicación todavía.</p>
+    {% else %}
+        <div class="equip-grid">
+            {% for eq in equipos %}
+            <div class="equip-card">
+                <div class="equip-top">
+                    <span class="equip-code">{{ eq.codigo }}</span>
+                    {% if eq.estado == 'Operativo' %}
+                        <span class="badge badge-operativo">● Operativo</span>
+                    {% elif eq.estado == 'En Mantenimiento' %}
+                        <span class="badge badge-mantenimiento">▲ En Mant.</span>
+                    {% else %}
+                        <span class="badge badge-fuera">■ Fuera de Servicio</span>
+                    {% endif %}
+                </div>
+                <div class="equip-name">{{ eq.nombre }}</div>
+                <div class="equip-meta">
+                    <strong>Marca:</strong> {{ eq.marca or 'N/A' }} | <strong>Modelo:</strong> {{ eq.modelo or 'N/A' }}
+                </div>
+                <div>
+                    <span class="cat-pill">{{ eq.categoria }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- PESTAÑA 2: REGISTRAR EQUIPO -->
+<div id="tab-nuevo" class="tab-panel">
+    <div class="form-card">
+        <!-- HTMX envía este formulario sin recargar la página -->
+        <form hx-post="/equipo/nuevo" hx-target="#contenido-principal" hx-swap="innerHTML">
+            <input type="hidden" name="ubicacion_id" value="{{ espacio.id }}">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Código de Inventario *</label>
+                    <input type="text" name="codigo" required placeholder="Ej: EQ-01">
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Equipo *</label>
+                    <input type="text" name="nombre" required placeholder="Ej: Plancha de Calentamiento">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de Equipo</label>
+                    <select name="categoria">
+                        <option value="Aire Acondicionado">Aire Acondicionado</option>
+                        <option value="Plancha de Calentamiento / Agitación">Plancha de Calentamiento / Agitación</option>
+                        <option value="Horno / Mufla / Estufa">Horno / Mufla / Estufa</option>
+                        <option value="Nevera / Refrigerador de reactivos">Nevera / Refrigerador de reactivos</option>
+                        <option value="Balanza Analítica / Granataria">Balanza Analítica / Granataria</option>
+                        <option value="Espectrofotómetro / Medidor Óptico">Espectrofotómetro / Medidor Óptico</option>
+                        <option value="Video Beam / Proyector">Video Beam / Proyector</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Marca / Fabricante</label>
+                    <input type="text" name="marca" placeholder="Ej: Thermo Scientific">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <input type="text" name="modelo" placeholder="Ej: Cimarec+">
+                </div>
+                <div class="form-group">
+                    <label>Estado Inicial</label>
+                    <select name="estado">
+                        <option value="Operativo">Operativo</option>
+                        <option value="En Mantenimiento">En Mantenimiento</option>
+                        <option value="Fuera de Servicio">Fuera de Servicio</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">💾 Guardar Activo</button>
+        </form>
+    </div>
+</div>
+
+<!-- PESTAÑA 3: GENERAR ORDEN -->
+<div id="tab-mantenimiento" class="tab-panel">
+    <div class="form-card">
+        {% if equipos|length == 0 %}
+            <p style="color: #64748b;">Debes registrar equipos en esta sala antes de crear órdenes.</p>
+        {% else %}
+        <form hx-post="/mantenimiento/nuevo" hx-target="#contenido-principal" hx-swap="innerHTML">
+            <input type="hidden" name="ubicacion_id" value="{{ espacio.id }}">
+
+            <div class="form-group">
+                <label>Seleccionar Equipo</label>
+                <select name="equipo_id">
+                    {% for eq in equipos %}
+                    <option value="{{ eq.id }}">[{{ eq.codigo }}] {{ eq.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de Tarea</label>
+                    <select name="tipo">
+                        <option value="Preventivo (Rutina)">Preventivo (Rutina)</option>
+                        <option value="Correctivo (Falla)">Correctivo (Falla)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Actualizar Estado del Equipo a</label>
+                    <select name="nuevo_estado">
+                        <option value="Operativo">Operativo</option>
+                        <option value="En Mantenimiento">En Mantenimiento</option>
+                        <option value="Fuera de Servicio">Fuera de Servicio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Responsable (Técnico / Docente)</label>
+                <input type="text" name="responsable" required placeholder="Nombre completo">
+            </div>
+
+            <div class="form-group">
+                <label>Detalle de la Intervención</label>
+                <textarea name="descripcion" rows="3" required placeholder="Descripción técnica del trabajo..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">🛠️ Registrar Mantenimiento</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- PESTAÑA 4: HISTORIAL -->
+<div id="tab-historial" class="tab-panel">
+    {% if historial|length == 0 %}
+        <p style="color: #64748b;">Sin intervenciones registradas en este espacio.</p>
+    {% else %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Código</th>
+                    <th>Equipo</th>
+                    <th>Tipo</th>
+                    <th>Detalle</th>
+                    <th>Responsable</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in historial %}
+                <tr>
+                    <td>{{ h.fecha }}</td>
+                    <td><strong>{{ h.equipo_codigo }}</strong></td>
+                    <td>{{ h.equipo_nombre }}</td>
+                    <td>{{ h.tipo }}</td>
+                    <td>{{ h.descripcion }}</td>
+                    <td>{{ h.responsable }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>

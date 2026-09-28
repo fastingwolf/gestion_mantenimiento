@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Mantenimiento</title>
+    <!-- Enlace al archivo CSS que acabas de guardar -->
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Carga de la librería HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+
+    <!-- MENÚ LATERAL -->
+    <aside class="sidebar">
+        <div class="sidebar-title">
+            <span>⚙️</span> Gestión de Equipos
+        </div>
+
+        <div>
+            <div class="section-label">Laboratorios</div>
+            <ul class="menu-list">
+                {% for lab in laboratorios %}
+                <li>
+                    <button class="menu-btn {% if loop.first %}active{% endif %}"
+                            hx-get="/espacio/{{ lab.id }}" 
+                            hx-target="#contenido-principal" 
+                            hx-swap="innerHTML"
+                            onclick="setActive(this)">
+                        🔬 {{ lab.nombre }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <div class="section-label">Aulas de Clase</div>
+            <ul class="menu-list">
+                {% for aula in aulas %}
+                <li>
+                    <button class="menu-btn"
+                            hx-get="/espacio/{{ aula.id }}" 
+                            hx-target="#contenido-principal" 
+                            hx-swap="innerHTML"
+                            onclick="setActive(this)">
+                        🏫 {{ aula.nombre }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <!-- ÁREA CENTRAL DINÁMICA -->
+    <main id="contenido-principal" class="main-content">
+        <!-- Flask inserta aquí el primer laboratorio al cargar la página por primera vez -->
+        {% include "partials/sala.html" %}
+    </main>
+
+    <!-- Script para cambiar el color del botón activo y las pestañas -->
+    <script>
+        function setActive(btn) {
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab-panel').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
