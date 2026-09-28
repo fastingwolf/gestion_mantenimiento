@@ -33,23 +33,6 @@
                 {% endfor %}
             </ul>
         </div>
-
-        <div>
-            <div class="section-label">Aulas de Clase</div>
-            <ul class="menu-list">
-                {% for aula in aulas %}
-                <li>
-                    <button class="menu-btn"
-                            hx-get="/espacio/{{ aula.id }}" 
-                            hx-target="#contenido-principal" 
-                            hx-swap="innerHTML"
-                            onclick="setActive(this)">
-                        🏫 {{ aula.nombre }}
-                    </button>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
         <div>
             <div class="section-label">Aulas de Clase</div>
             <ul class="menu-list">
