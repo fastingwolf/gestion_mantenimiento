@@ -17,8 +17,9 @@
             <span>⚙️</span> Gestión de Equipos
         </div>
 
-        <div>
-            <div class="section-label">Laboratorios</div>
+        <!-- MENÚ DESPLEGABLE DE LABORATORIOS (Abierto por defecto) -->
+        <details class="nav-group" open>
+            <summary class="section-label">Laboratorios</summary>
             <ul class="menu-list">
                 {% for lab in laboratorios %}
                 <li>
@@ -33,10 +34,11 @@
                 </li>
                 {% endfor %}
             </ul>
-        </div>
+        </details>
 
-        <div>
-            <div class="section-label">Aulas de Clase</div>
+        <!-- MENÚ DESPLEGABLE DE AULAS (Cerrado por defecto) -->
+        <details class="nav-group">
+            <summary class="section-label">Aulas de Clase</summary>
             <ul class="menu-list">
                 {% for aula in aulas %}
                 <li>
@@ -51,7 +53,7 @@
                 </li>
                 {% endfor %}
             </ul>
-        </div>
+        </details>
         <!-- NUEVO: PERFIL DEL USUARIO -->
         <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #1e293b;">
             <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">👤 {{ usuario_actual.nombre }}</div>

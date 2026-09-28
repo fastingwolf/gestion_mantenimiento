@@ -14,88 +14,53 @@ body {
     color: #0f172a;
 }
 
-/* ================= BARRA LATERAL (SIDEBAR) ================= */
-.sidebar {
-    width: 280px;
-    background-color: #0f172a;
-    color: #f8fafc;
-    padding: 1.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    border-right: 1px solid #1e293b;
-    flex-shrink: 0;
-    overflow-y: auto; /* Permite scroll si hay muchos laboratorios */
+/* ================= MENÚS DESPLEGABLES (ACORDEONES) ================= */
+.nav-group {
+    margin-bottom: 1rem;
 }
 
-/* Estilo para la barra de scroll del menú */
-.sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-.sidebar::-webkit-scrollbar-thumb {
-    background-color: #334155;
-    border-radius: 4px;
-}
-
-.sidebar-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #1e293b;
-    margin-bottom: 0.5rem;
-}
-
-.section-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #64748b; /* Tono más suave para no competir con los botones */
-    margin-bottom: 0.8rem;
-    font-weight: 700;
-    padding-left: 0.5rem;
-}
-
-.menu-list {
+/* Ocultar la flecha por defecto del navegador */
+.nav-group summary {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem; /* Un poco más de espacio para respirar */
+}
+.nav-group summary::-webkit-details-marker {
+    display: none;
 }
 
-.menu-btn {
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: none;
-    color: #94a3b8; /* Texto inactivo ligeramente apagado */
-    padding: 0.7rem 0.8rem;
-    border-radius: 8px;
+/* Estilo del título clickeable */
+.nav-group summary.section-label {
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    line-height: 1.3;
-    transition: all 0.2s ease;
-    
-    /* Flexbox evita que el texto largo pase por debajo del emoji */
-    display: flex; 
-    align-items: flex-start; 
-    gap: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.2rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.menu-btn:hover {
+/* Efecto al pasar el mouse por el título */
+.nav-group summary.section-label:hover {
     background-color: #1e293b;
-    color: #f1f5f9;
+    color: #f8fafc;
 }
 
-.menu-btn.active {
-    background-color: #2563eb;
-    color: #ffffff;
-    font-weight: 600;
-    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25); /* Sombreado elegante */
+/* Flecha personalizada */
+.nav-group summary.section-label::after {
+    content: '▼';
+    font-size: 0.65rem;
+    color: #64748b;
+    transition: transform 0.3s ease; /* Animación de rotación */
+}
+
+/* Rotar la flecha cuando el menú está abierto */
+.nav-group[open] summary.section-label::after {
+    transform: rotate(-180deg);
+}
+
+.nav-group[open] .menu-list {
+    padding-top: 0.3rem;
+    padding-bottom: 0.5rem;
 }
 
 /* ================= PANEL PRINCIPAL ================= */
