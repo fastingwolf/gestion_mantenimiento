@@ -313,3 +313,92 @@ input:focus, select:focus, textarea:focus {
     color: #475569;
     font-weight: 600;
 }
+
+/* ========================================================= */
+/* ================= RESPONSIVE (MÓVILES) ================== */
+/* ========================================================= */
+
+@media (max-width: 768px) {
+    /* 1. Pasar el diseño general de columnas a filas (uno debajo de otro) */
+    body {
+        flex-direction: column;
+    }
+
+    /* 2. El menú lateral pasa arriba y se vuelve un menú deslizable horizontal */
+    .sidebar {
+        width: 100%;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid #1e293b;
+        gap: 0.8rem;
+    }
+
+    .menu-list {
+        flex-direction: row;
+        overflow-x: auto; /* Permite deslizar con el dedo */
+        padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    }
+
+    /* Ocultar barra de scroll en el menú para un look más limpio */
+    .menu-list::-webkit-scrollbar {
+        display: none;
+    }
+
+    .menu-btn {
+        width: auto;
+        white-space: nowrap; /* Evita que el nombre del laboratorio se corte */
+    }
+
+    /* 3. Reducir los espacios vacíos en los bordes de la pantalla */
+    .main-content {
+        padding: 1.25rem 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    /* 4. Apilar las tarjetas de indicadores en una sola columna */
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* 5. Ajustar los botones de pestañas (Tabs) en 2 filas */
+    .tabs-nav {
+        flex-wrap: wrap;
+        padding: 0.4rem;
+    }
+
+    .tab-btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.2rem;
+    }
+
+    /* 6. Los formularios pasan de 2 columnas a 1 columna */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    /* 7. Proteger la tabla del historial permitiendo scroll interno */
+    #tab-historial {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .data-table {
+        border: none;
+        min-width: 600px; /* Obliga a la tabla a mantener su tamaño y habilitar el scroll */
+    }
+
+    /* 8. Las tarjetas de equipos ocupan el ancho total */
+    .equip-grid {
+        grid-template-columns: 1fr;
+    }
+}
