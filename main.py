@@ -219,6 +219,33 @@ def nuevo_mantenimiento():
                            tab_activa=tab_activa, 
                            **datos_sala)
 
+@app.route("/equipos/eliminar/<int:equipo_id>", methods=["POST"])
+def eliminar_equipo(equipo_id):
+    # 1. Verificar si el usuario autenticado tiene rol 'admin'
+    rol_actual = session.get("rol")
+    if not rol_actual and isinstance(session.get("usuario"), dict):
+        rol_actual = session.get("usuario", {}).get("rol")
+
+    if rol_actual != "admin":
+        return "Acceso denegado: Se requieren permisos de administrador", 403
+
+    conn = obtener_conexion()
+    cursor = conn.cursor()
+    try:
+        # 2. Borrar primero los mantenimientos asociados para no violar la Foreign Key
+        cursor.execute("DELETE FROM mantenimientos WHERE equipo_id = %s", (equipo_id,))
+        # 3. Borrar el equipo
+        cursor.execute("DELETE FROM equipos WHERE id = %s", (equipo_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"Error al eliminar equipo #{equipo_id}: {e}")
+    finally:
+        conn.close()
+
+    # Redirigir a la vista anterior (la sala actual) o al inicio
+    return redirect(request.referrer or url_for("index"))
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
 
