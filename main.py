@@ -221,3 +221,20 @@ def nuevo_mantenimiento():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
+def eliminar_equipo_db(equipo_id: int):
+    conn = obtener_conexion()
+    cursor = conn.cursor()
+    try:
+        # 1. Eliminar mantenimientos asociados para no violar la FK
+        cursor.execute("DELETE FROM mantenimientos WHERE equipo_id = %s", (equipo_id,))
+        # 2. Eliminar el equipo
+        cursor.execute("DELETE FROM equipos WHERE id = %s", (equipo_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        print(f"Error al eliminar equipo: {e}")
+        return False
+    finally:
+        conn.close()
